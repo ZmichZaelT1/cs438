@@ -14,10 +14,16 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <string>
+#include <iostream>
+#include <bits/stdc++.h> 
+#include <vector>
+using namespace std;
 
 #define PORT "3490"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
+#define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void sigchld_handler(int s)
 {
@@ -34,7 +40,27 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(void)
+//GET /test.txt HTTP/1.1
+string parse_request(char* buf) {
+	string tmp = buf;
+	string request;
+	if (tmp.find("GET ") == 0) {
+		size_t minus_get_i = tmp.find(" ");
+		string minus_get = tmp.substr(minus_get_i+1);
+
+		if (minus_get.find(" ") == string::npos ) {
+			return minus_get;
+		}
+
+		size_t request_i = minus_get.find(" ");
+		request = minus_get.substr(0, request_i);
+	} else {
+		return "";
+	}
+	return request;
+}
+
+int main(int argc, char *argv[])
 {
 	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
 	struct addrinfo hints, *servinfo, *p;
@@ -50,7 +76,7 @@ int main(void)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
 
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, argv[1], &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -112,11 +138,40 @@ int main(void)
 			get_in_addr((struct sockaddr *)&their_addr),
 			s, sizeof s);
 		printf("server: got connection from %s\n", s);
+		
+		char buffer[MAXDATASIZE];
+		const char* request;
+		ssize_t len = read(new_fd, buffer, MAXDATASIZE-1);
+		if (len > 0) {
+			buffer[len] = 0;
+			printf("read %d chars\n", (int)len);
+			printf("=========\n");
+			printf("%s\n", buffer);
+			string req = parse_request(buffer);
+			request = req.c_str();
+		}
+		printf("request: %s\n", request);
 
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Hello, world!", 13, 0) == -1)
-				perror("send");
+
+			if (!strcmp(request, "")) { //bad request
+				if(send(new_fd, "400 Bad Request", 15, 0) == -1) 
+					perror("send");
+			} else {
+				FILE *fd = fopen(request, "r");
+				if (!fd) {
+					if(send(new_fd, "Http/1.1 404 Not Found", 22, 0) == -1) 
+						perror("send");
+				} else {
+					if(send(new_fd, "HTTP/1.1 200 OK", 15, 0) == -1) 
+						perror("send");
+					char* c;
+					fscanf(fd,"%s", c);
+					printf("Value of n=%s", c);					
+					fclose(fd);
+				}
+			}
 			close(new_fd);
 			exit(0);
 		}
