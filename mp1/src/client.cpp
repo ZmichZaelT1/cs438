@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
 	string a = get_request(vec[2]);
 	const char* request_c = a.c_str();
 
-	printf("domain: %s\n", domain_c);
-	printf("port: %s\n", port_c);
-	printf("request_c: %s\n", request_c);
+	// printf("domain: %s\n", domain_c);
+	// printf("port: %s\n", port_c);
+	// printf("request_c: %s\n", request_c);
 
 	if ((rv = getaddrinfo(domain_c, port_c, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
