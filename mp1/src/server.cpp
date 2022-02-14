@@ -46,14 +46,16 @@ string parse_request(char* buf) {
 	string request;
 	if (tmp.find("GET ") == 0) {
 		size_t minus_get_i = tmp.find(" ");
-		string minus_get = tmp.substr(minus_get_i+1);
+		string minus_get = tmp.substr(minus_get_i+2);
 
 		if (minus_get.find(" ") == string::npos ) {
+			minus_get[minus_get.length() - 2] = '\0';
 			return minus_get;
 		}
 
 		size_t request_i = minus_get.find(" ");
 		request = minus_get.substr(0, request_i);
+		// request[request.length() - 2] = 0;
 	} else {
 		return "";
 	}
@@ -141,35 +143,44 @@ int main(int argc, char *argv[])
 		
 		char buffer[MAXDATASIZE];
 		const char* request;
+		string req;
 		ssize_t len = read(new_fd, buffer, MAXDATASIZE-1);
 		if (len > 0) {
 			buffer[len] = 0;
 			printf("read %d chars\n", (int)len);
 			printf("=========\n");
 			printf("%s\n", buffer);
-			string req = parse_request(buffer);
-			request = req.c_str();
+			req = parse_request(buffer);
+			// request = req.c_str();
 		}
-		printf("request: %s\n", request);
 
+		cout<<req<<endl;
+		request = req.c_str();
+		printf("request: %s\n", request);
+		// request[strlen(request) - 2] = 0;
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
 
 			if (!strcmp(request, "")) { //bad request
-				if(send(new_fd, "400 Bad Request", 15, 0) == -1) 
+				if(send(new_fd, "400 Bad Request\r\n\r\n", 19, 0) == -1) 
 					perror("send");
 			} else {
 				FILE *fd = fopen(request, "r");
 				if (!fd) {
-					if(send(new_fd, "Http/1.1 404 Not Found", 22, 0) == -1) 
+					if(send(new_fd, "Http/1.1 404 Not Found\r\n\r\n", 26, 0) == -1) 
 						perror("send");
 				} else {
-					if(send(new_fd, "HTTP/1.1 200 OK", 15, 0) == -1) 
+					if(send(new_fd, "HTTP/1.1 200 OK\r\n\r\n", 19, 0) == -1) 
 						perror("send");
-					char* c;
-					fscanf(fd,"%s", c);
-					printf("Value of n=%s", c);					
-					fclose(fd);
+					char *buf = (char *) malloc(1024);
+					size_t nread;
+					if (buf == NULL) {
+						exit(1);
+					}
+					while ((nread = fread(buf, 1, 1024, fd)) > 0) 
+						if(send(new_fd, buf, nread, 0) == -1) 
+							perror("send");
+
 				}
 			}
 			close(new_fd);
