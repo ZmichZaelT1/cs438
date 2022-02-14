@@ -35,7 +35,7 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 // ./http_client http://hostname[:port]/path/to/file
-std::vector<string> parse_arg(char* argv) {
+vector<string> parse_arg(char* argv) {
 	string tmp = argv;
 	// size_t url_length = tmp.length();
 
@@ -43,19 +43,28 @@ std::vector<string> parse_arg(char* argv) {
 	string minus_http = tmp.substr(minus_http_i);
 
 	size_t domain_i, port_i;
-	string domain, port;
+	string domain, port, request;
 	if (minus_http.find(":") != string::npos ) {
 		domain_i = minus_http.find(":");
 		domain = minus_http.substr(0,domain_i);
 		port_i = minus_http.find("/");
 		port = minus_http.substr(domain_i + 1, port_i - domain_i - 1);
+		request = minus_http.substr(port_i);
 	} else {
 		domain_i = minus_http.find("/");
 		domain = minus_http.substr(0,domain_i);
 		port = "80";
+		request = minus_http.substr(domain_i);
 	}
 
-	return {port, domain};
+	return {domain, port, request};
+}
+
+//	"GET /server.c HTTP/1.1\r\n\r\n";
+string get_request(string request) { //request = "/server.c"
+	string ret = "GET " + request + " HTTP/1.1\r\n\r\n";
+	// cout << ret;
+	return ret;
 }
 
 int main(int argc, char *argv[])
@@ -79,10 +88,12 @@ int main(int argc, char *argv[])
 
 	const char* domain_c = vec[0].c_str();
 	const char* port_c = vec[1].c_str();
+	string a = get_request(vec[2]);
+	const char* request_c = a.c_str();
 
 	printf("domain: %s\n", domain_c);
 	printf("port: %s\n", port_c);
-
+	printf("request_c: %s\n", request_c);
 
 	if ((rv = getaddrinfo(domain_c, port_c, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -117,15 +128,21 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo); // all done with this structure
 
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	    perror("recv");
-	    exit(1);
+	write(sockfd, request_c, strlen(request_c));
+
+	FILE *fd = fopen("output", "w+");
+	while(1) {
+		ssize_t bytes_recd = read(sockfd, buf, sizeof(buf));
+		if (bytes_recd > 0) {
+			// write(1, buf, bytes_recd);
+			fprintf(fd, buf);
+			memset(&buf, 0, sizeof buf);
+		} else {
+			break;
+		}
 	}
 
-	buf[numbytes] = '\0';
-
-	printf("client: received '%s'\n",buf);
-
+	fclose(fd);
 	close(sockfd);
 
 	return 0;
