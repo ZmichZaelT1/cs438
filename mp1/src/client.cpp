@@ -67,6 +67,17 @@ string get_request(string request) { //request = "/server.c"
 	return ret;
 }
 
+string remove_head(char* buf) {
+	string tmp = buf;
+	if (tmp.find("\r\n\r\n") == string::npos) {
+		return buf;
+	} else {
+		size_t head_i = tmp.find("\r\n\r\n")+4;
+		string minus_head = tmp.substr(head_i);
+		return minus_head;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int sockfd, numbytes;  
@@ -128,14 +139,18 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo); // all done with this structure
 
+	printf("client request: %s\n", request_c);
 	write(sockfd, request_c, strlen(request_c));
 
 	FILE *fd = fopen("output", "w+");
+	string head_str;
 	while(1) {
 		ssize_t bytes_recd = read(sockfd, buf, sizeof(buf));
 		if (bytes_recd > 0) {
+			head_str = remove_head(buf);
+			const char* head_checked = head_str.c_str();
 			// write(1, buf, bytes_recd);
-			fprintf(fd, buf);
+			fprintf(fd, head_checked);
 			memset(&buf, 0, sizeof buf);
 		} else {
 			break;
