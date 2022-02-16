@@ -23,7 +23,7 @@ using namespace std;
 #define PORT "3490"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
+#define MAXDATASIZE 1024 // max number of bytes we can get at once 
 
 void sigchld_handler(int s)
 {
@@ -44,13 +44,13 @@ void *get_in_addr(struct sockaddr *sa)
 string parse_request(char* buf) {
 	string tmp = buf;
 	string request;
-	if (tmp.find("GET ") == 0) {
+	if (tmp.find("GET") == 0) {
 		size_t minus_get_i = tmp.find(" ");
-		string minus_get = tmp.substr(minus_get_i+2);
+		string minus_get = tmp.substr(minus_get_i+1);
 
 		if (minus_get.find(" ") == string::npos ) {
 			minus_get[minus_get.length() - 2] = '\0';
-			return minus_get;
+			return "."+minus_get;
 		}
 
 		size_t request_i = minus_get.find(" ");
@@ -59,7 +59,7 @@ string parse_request(char* buf) {
 	} else {
 		return "";
 	}
-	return request;
+	return "."+request;
 }
 
 int main(int argc, char *argv[])
@@ -144,7 +144,17 @@ int main(int argc, char *argv[])
 		char buffer[MAXDATASIZE];
 		const char* request;
 		string req;
-		ssize_t len = read(new_fd, buffer, MAXDATASIZE-1);
+		// ssize_t len;
+		// while (1) {
+		// 	ssize_t len = recv(new_fd, buffer, MAXDATASIZE, 0);
+		// 	if (len <= 0) break;
+		// 	r += string(buffer);
+		// }
+		ssize_t len = recv(new_fd, buffer, MAXDATASIZE, 0);
+		
+		// req = parse_request(buffer);
+		
+		
 		if (len > 0) {
 			buffer[len] = 0;
 			printf("read %d chars\n", (int)len);
@@ -165,22 +175,24 @@ int main(int argc, char *argv[])
 				if(send(new_fd, "400 Bad Request\r\n\r\n", 19, 0) == -1) 
 					perror("send");
 			} else {
-				FILE *fd = fopen(request, "r");
+				FILE *fd = fopen(request, "rb");
 				if (!fd) {
-					if(send(new_fd, "Http/1.1 404 Not Found\r\n\r\n", 26, 0) == -1) 
+					if(send(new_fd, "HTTP/1.1 404 Not Found\r\n\r\n", 26, 0) == -1) 
 						perror("send");
 				} else {
 					if(send(new_fd, "HTTP/1.1 200 OK\r\n\r\n", 19, 0) == -1) 
 						perror("send");
-					char *buf = (char *) malloc(1024);
+
+					char buf[1024];
 					size_t nread;
 					if (buf == NULL) {
 						exit(1);
 					}
+
 					while ((nread = fread(buf, 1, 1024, fd)) > 0) 
 						if(send(new_fd, buf, nread, 0) == -1) 
 							perror("send");
-
+					fclose(fd);
 				}
 			}
 			close(new_fd);
