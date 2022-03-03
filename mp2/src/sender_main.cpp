@@ -23,7 +23,7 @@
 
 using namespace std;
 
-#define MSS 130
+#define MSS 1300
 #define N 4
 
 struct sockaddr_in si_other;
