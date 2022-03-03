@@ -16,10 +16,22 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#define MSS 130
+
+typedef struct packet_ {
+    long seqNum;
+    int length;
+    char data[MSS];
+}packet;
 
 
 struct sockaddr_in si_me, si_other;
 int s, slen;
+int expectedSeqNum = 1;
+
+void writeToFile(FILE *fp, packet *pck) {
+    fwrite(pck->data, sizeof(char), pck->length, fp);
+}
 
 void diep(char *s) {
     perror(s);
@@ -46,7 +58,34 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
 
 
 	/* Now receive data and send acknowledgements */    
+    FILE *fp;
+    fp = fopen(destinationFile, "ab");
+    if (fp == NULL) {
+        printf("Could not open file to write.");
+        exit(1);
+    }
 
+    while (1) {
+        packet *pck = (packet*) calloc(1, sizeof(packet));
+        socklen_t l = (socklen_t) slen;
+        int bytes_read = recvfrom(s, pck, sizeof(*pck), 0, (struct sockaddr*) &si_other, &l);
+        int receivedSeqNum = pck->seqNum;
+
+        if (receivedSeqNum == -1) {
+            break;
+        }
+
+        if (receivedSeqNum == expectedSeqNum) {
+            writeToFile(fp, pck);
+            expectedSeqNum++;
+        }
+        int sendArk = expectedSeqNum - 1;
+        sendto(s, &sendArk, sizeof(sendArk), 0, (struct sockaddr*) &si_other, slen);
+
+
+    }
+
+    fclose(fp);
     close(s);
 	printf("%s received.", destinationFile);
     return;
