@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define MSS 130
+#define MSS 1300
 
 typedef struct packet_ {
     long seqNum;

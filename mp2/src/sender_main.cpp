@@ -91,8 +91,6 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
     }
     loadFileToPacket(fp, bytesToTransfer);
     fclose(fp);
-    printf("data is \n%s\n", packets_map[1]->data);
-    printf("data is \n%s\n", packets_map[2]->data);
 
 	/* Determine how many bytes to transfer */
 
