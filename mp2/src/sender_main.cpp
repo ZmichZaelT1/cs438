@@ -24,7 +24,7 @@
 using namespace std;
 
 #define MSS 1300
-#define N 4
+// #define N 1
 
 struct sockaddr_in si_other;
 int s, slen;
@@ -33,6 +33,7 @@ int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
 double time_th = 0.05;
+int N = 1;
 
 typedef struct packet_ {
     long seqNum;
@@ -138,6 +139,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         if (nextSeqNum == tmp) { // no ack received
             nextSeqNum = tmp; // reset nextSeqNum
         }
+        N *= 2;
 
     }
 
