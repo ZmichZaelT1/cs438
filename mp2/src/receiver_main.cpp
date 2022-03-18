@@ -81,7 +81,7 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
         }
         int sendArk = expectedSeqNum - 1;
         sendto(s, &sendArk, sizeof(sendArk), 0, (struct sockaddr*) &si_other, slen);
-
+        fflush (fp);
 
     }
 
