@@ -33,7 +33,7 @@ int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
 double time_th = 0.1;
-int N = 8000;
+int N = 15000;
 
 typedef struct packet_ {
     long seqNum;
