@@ -63,7 +63,7 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
 
 	/* Now receive data and send acknowledgements */    
     FILE *fp;
-    fp = fopen(destinationFile, "ab");
+    fp = fopen(destinationFile, "wb");
     if (fp == NULL) {
         printf("Could not open file to write.");
         exit(1);
