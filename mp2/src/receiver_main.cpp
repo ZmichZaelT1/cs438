@@ -29,7 +29,7 @@ struct sockaddr_in si_me, si_other;
 int s, slen;
 int expectedSeqNum = 1;
 FILE *fp;
-char* filename;
+// char* filename;
 
 void writeToFile(FILE *fp, packet *pck) {
     // fp = fopen(filename, "ab");
@@ -45,7 +45,7 @@ void diep(char *s) {
 
 
 void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
-    filename = destinationFile;
+    // filename = destinationFile;
     slen = sizeof (si_other);
 
 

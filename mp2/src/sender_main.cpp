@@ -20,6 +20,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -32,8 +33,8 @@ int base = 1;
 int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
-double time_th = 0.1;
-int N = 15000;
+double time_th = 0.025;
+int N = 300;
 
 typedef struct packet_ {
     long seqNum;
@@ -54,6 +55,7 @@ void loadFileToPacket(FILE *fp, unsigned long long int bytesToTransfer) {
     num_packets = bytesToTransfer / MSS;
     if (bytesToTransfer % MSS != 0) num_packets++;
     int count = 1;
+    int total_bytes_read = 0;
     while (!feof(fp)) {
         packet *pck = (packet*) calloc(1, sizeof(packet));
         // pck->data = (char*) calloc(MSS, sizeof(char));
@@ -66,8 +68,10 @@ void loadFileToPacket(FILE *fp, unsigned long long int bytesToTransfer) {
         pck->seqNum = count;
         pck->length = (int) bytes_read;
         packets_map[count++] = pck;
+        total_bytes_read += bytes_read;
         // count++;
     }
+    cout << "total byte read: "<< total_bytes_read<<"\ntotal packets: "<<count<<endl; 
 }
 
 int checkReceive() {
@@ -129,6 +133,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             sendto(s, toSend, sizeof(*toSend), 0, (struct sockaddr*)&si_other, sizeof(si_other));
             nextSeqNum++;
         }
+        cout << "sended " << tmp << " - " << nextSeqNum-1 << endl;
         clock_t start = clock();
 
         int expectAck = nextSeqNum - 1;
