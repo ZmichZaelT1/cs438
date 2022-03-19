@@ -32,9 +32,9 @@ FILE *fp;
 char* filename;
 
 void writeToFile(FILE *fp, packet *pck) {
-    fp = fopen(filename, "ab");
+    // fp = fopen(filename, "ab");
     fwrite(pck->data, sizeof(char), pck->length, fp);
-    fclose(fp);
+    // fclose(fp);
 }
 
 void diep(char *s) {
@@ -62,12 +62,12 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
 
 
 	/* Now receive data and send acknowledgements */    
-    // FILE *fp;
-    // fp = fopen(destinationFile, "ab");
-    // if (fp == NULL) {
-    //     printf("Could not open file to write.");
-    //     exit(1);
-    // }
+    FILE *fp;
+    fp = fopen(destinationFile, "ab");
+    if (fp == NULL) {
+        printf("Could not open file to write.");
+        exit(1);
+    }
 
     while (1) {
         packet *pck = (packet*) calloc(1, sizeof(packet));
@@ -85,11 +85,11 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
         }
         int sendArk = expectedSeqNum - 1;
         sendto(s, &sendArk, sizeof(sendArk), 0, (struct sockaddr*) &si_other, slen);
-        // fflush (fp);
+        fflush (fp);
 
     }
 
-    // fclose(fp);
+    fclose(fp);
     close(s);
 	printf("%s received.", destinationFile);
     return;

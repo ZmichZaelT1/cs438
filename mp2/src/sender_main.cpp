@@ -32,8 +32,8 @@ int base = 1;
 int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
-double time_th = 0.05;
-int N = 1;
+double time_th = 0.1;
+int N = 4000;
 
 typedef struct packet_ {
     long seqNum;
@@ -107,7 +107,10 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
-
+/////////
+    // int dropPacket = 1;
+    // int dropIndex = 2;
+//////////
     while (1) {
         if (highestAckReceived == num_packets) break;
         int tmp = nextSeqNum;
@@ -115,6 +118,13 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             if (nextSeqNum > num_packets) {
                 break;
             }
+            /////////////////////////
+            // if (dropPacket && dropIndex == i) {
+            //     dropPacket = 0;
+            //     nextSeqNum++;
+            //     continue;
+            // }
+            /////////////////////////
             packet *toSend = packets_map[nextSeqNum];
             sendto(s, toSend, sizeof(*toSend), 0, (struct sockaddr*)&si_other, sizeof(si_other));
             nextSeqNum++;
@@ -139,7 +149,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         if (nextSeqNum == tmp) { // no ack received
             nextSeqNum = tmp; // reset nextSeqNum
         }
-        N *= 2;
+        // N *= 4;
 
     }
 
