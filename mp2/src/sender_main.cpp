@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <map>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ int highestAckReceived = 0;
 int num_packets = 0;
 // double time_th = 1;
 int N = 1;
-int ssthresh = 10;
+int ssthresh = 15;
 
 typedef struct packet_ {
     long seqNum;
@@ -161,6 +162,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             socklen_t len = sizeof(si_other);
             if (recvfrom(s, &newAck, sizeof(newAck), 0, (struct sockaddr*) &si_other, &len) != sizeof(int)) {
                 nextSeqNum = highestAckReceived + 1;
+                ssthresh = ceil(N/2);
                 N = 1;
                 break;
             }
@@ -179,7 +181,8 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             if (newAck == prevAck) {
                 countDupAck++;
                 if (countDupAck == 3 && halfed == 0) {
-                    N = N / 2;
+                    ssthresh = ceil(N/2);
+                    N = ssthresh;
                 }
             }
             prevAck = newAck;
