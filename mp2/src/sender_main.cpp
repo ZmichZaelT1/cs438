@@ -99,13 +99,11 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         printf("Could not open file to send.");
         exit(1);
     }
-    loadFileToPacket(fp, bytesToTransfer);
-    // fclose(fp);
 
+///////////////////// init socket ////////////////// 
 	/* Determine how many bytes to transfer */
 
     slen = sizeof (si_other);
-///////////////////// init socket ////////////////// 
     if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
         diep("socket");
 
