@@ -35,6 +35,7 @@ int highestAckReceived = 0;
 int num_packets = 0;
 // double time_th = 1;
 int N = 1;
+int ssthresh = 10;
 
 typedef struct packet_ {
     long seqNum;
@@ -61,8 +62,8 @@ void loadFileToPacket(FILE *fp, unsigned long long int bytesToTransfer) {
         // pck->data = (char*) calloc(MSS, sizeof(char));
         size_t bytes_read = fread(pck->data, sizeof(char), MSS, fp);
         if (bytes_read <= 0) {
-            free(pck->data);
-            free(pck);
+            // free(pck->data);
+            // free(pck);
             break;
         }
         pck->seqNum = count;
@@ -150,10 +151,12 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         int prevAck = -2;
         int countDupAck = 0;
         int halfed = 0;
+        int ca = 0;
         // while ((double) (clock()-start) / (double) CLOCKS_PER_SEC < 1) {
         for (int i = 0; i < sentCount; i++) {
             if (highestAckReceived == num_packets) break;
             // int newAck = checkReceive();
+            if (N >= ssthresh) ca = 1;
             int newAck = -1;
             socklen_t len = sizeof(si_other);
             if (recvfrom(s, &newAck, sizeof(newAck), 0, (struct sockaddr*) &si_other, &len) != sizeof(int)) {
@@ -188,9 +191,12 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         //     nextSeqNum = tmp; // reset nextSeqNum
         // }
         if (halfed == 0) {
-            N *= 2;
+            if (ca) {
+                N++;
+            } else {
+                N *= 2;
+            }
         }
-        // N *= 4;
     }
 
 
