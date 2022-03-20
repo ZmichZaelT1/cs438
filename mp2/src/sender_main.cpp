@@ -25,7 +25,7 @@
 using namespace std;
 
 #define MSS 1300
-// #define N 1
+#define TIME_TH 100000 //us
 
 struct sockaddr_in si_other;
 int s, slen;
@@ -33,7 +33,7 @@ int base = 1;
 int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
-double time_th = 1;
+// double time_th = 1;
 int N = 1;
 
 typedef struct packet_ {
@@ -100,7 +100,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
 	/* Determine how many bytes to transfer */
 
     slen = sizeof (si_other);
-
+///////////////////// init socket ////////////////// 
     if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
         diep("socket");
 
@@ -111,6 +111,13 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = TIME_TH;
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+//////////////////////////////////////////////////// 
+
 /////////
     // int dropPacket = 1;
     // int dropIndex = 2;
@@ -118,6 +125,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
     while (1) {
         if (highestAckReceived == num_packets) break;
         int tmp = nextSeqNum;
+        int sentCount = 0;
         cout<< "window size: " << N << endl;
         for (int i = 0; i < N; i++) {
             if (nextSeqNum > num_packets) {
@@ -133,45 +141,52 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             packet *toSend = packets_map[nextSeqNum];
             sendto(s, toSend, sizeof(*toSend), 0, (struct sockaddr*)&si_other, sizeof(si_other));
             nextSeqNum++;
+            sentCount++;
         }
         cout << "sended " << tmp << " - " << nextSeqNum-1 << endl;
-        clock_t start = clock();
+        // clock_t start = clock();
 
         int expectAck = nextSeqNum - 1;
         int prevAck = -2;
         int countDupAck = 0;
         int halfed = 0;
-        while ((double) (clock()-start) / (double) CLOCKS_PER_SEC < time_th) {
-            int newAck = checkReceive();
-            // cout << "received ack: " << newAck<<endl;
-            if (newAck == 700) {
-                cout << "hhahaha"<< endl;
+        // while ((double) (clock()-start) / (double) CLOCKS_PER_SEC < 1) {
+        for (int i = 0; i < sentCount; i++) {
+            if (highestAckReceived == num_packets) break;
+            // int newAck = checkReceive();
+            int newAck = -1;
+            socklen_t len = sizeof(si_other);
+            if (recvfrom(s, &newAck, sizeof(newAck), 0, (struct sockaddr*) &si_other, &len) != sizeof(int)) {
+                nextSeqNum = highestAckReceived + 1;
+                N = 1;
+                break;
             }
-            // if (newAck == -1) continue;
+
             if (newAck == expectAck) {
                 highestAckReceived = newAck;
                 nextSeqNum = highestAckReceived + 1;
                 break;
             }
+
             if (newAck > highestAckReceived) {
                 highestAckReceived = newAck;
                 nextSeqNum = highestAckReceived + 1;
             }
+            
             if (newAck == prevAck) {
                 countDupAck++;
-            }
-            if (countDupAck == 3 && halfed == 0) {
-                N = N / 2;
-                halfed = 1;
+                if (countDupAck == 3 && halfed == 0) {
+                    N = N / 2;
+                }
             }
             prevAck = newAck;
             // cout << "received ack: " << newAck<< "     highestAck: "<<highestAckReceived<< endl;
         }
         cout << "highestAck: " << highestAckReceived<< endl;
 
-        if (nextSeqNum == tmp) { // no ack received
-            nextSeqNum = tmp; // reset nextSeqNum
-        }
+        // if (nextSeqNum == tmp) { // no ack received
+        //     nextSeqNum = tmp; // reset nextSeqNum
+        // }
         if (halfed == 0) {
             N *= 2;
         }
