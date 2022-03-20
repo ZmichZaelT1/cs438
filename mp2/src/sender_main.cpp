@@ -193,9 +193,6 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         }
         cout << "highestAck: " << highestAckReceived<< endl;
 
-        // if (nextSeqNum == tmp) { // no ack received
-        //     nextSeqNum = tmp; // reset nextSeqNum
-        // }
         if (halfed == 0) {
             if (ca) {
                 N++;
