@@ -100,7 +100,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         exit(1);
     }
     loadFileToPacket(fp, bytesToTransfer);
-    fclose(fp);
+    // fclose(fp);
 
 	/* Determine how many bytes to transfer */
 
@@ -127,6 +127,8 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
     // int dropPacket = 1;
     // int dropIndex = 2;
 //////////
+    num_packets = bytesToTransfer / MSS;
+    if (bytesToTransfer % MSS != 0) num_packets++;
     while (1) {
         if (highestAckReceived == num_packets) break;
         int tmp = nextSeqNum;
@@ -136,6 +138,11 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             if (nextSeqNum > num_packets) {
                 break;
             }
+            packet *pck = (packet*) calloc(1, sizeof(packet));
+            fseek(fp, (nextSeqNum-1) * MSS, SEEK_SET);
+            size_t bytes_read = fread(pck->data, sizeof(char), MSS, fp);
+            pck->seqNum = nextSeqNum;
+            pck->length = (int) bytes_read;
             /////////////////////////
             // if (dropPacket && dropIndex == i) {
             //     dropPacket = 0;
@@ -143,8 +150,8 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             //     continue;
             // }
             /////////////////////////
-            packet *toSend = packets_map[nextSeqNum];
-            sendto(s, toSend, sizeof(*toSend), 0, (struct sockaddr*)&si_other, sizeof(si_other));
+            // packet *toSend = packets_map[nextSeqNum];
+            sendto(s, pck, sizeof(*pck), 0, (struct sockaddr*)&si_other, sizeof(si_other));
             nextSeqNum++;
             sentCount++;
         }
@@ -209,6 +216,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
 
     printf("Closing the socket\n");
     close(s);
+    fclose(fp);
     return;
 
 }
