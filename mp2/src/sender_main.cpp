@@ -25,7 +25,7 @@
 using namespace std;
 
 #define MSS 1300
-#define TIME_TH 100000 //us
+#define TIME_TH 160000 //us
 
 struct sockaddr_in si_other;
 int s, slen;
