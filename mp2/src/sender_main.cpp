@@ -36,7 +36,7 @@ int highestAckReceived = 0;
 int num_packets = 0;
 // double time_th = 1;
 int N = 1;
-int ssthresh = 15;
+int ssthresh = 20;
 
 typedef struct packet_ {
     long seqNum;
@@ -54,8 +54,11 @@ void finishedSending() {
 }
 
 void loadFileToPacket(FILE *fp, unsigned long long int bytesToTransfer) {
-    num_packets = bytesToTransfer / MSS;
-    if (bytesToTransfer % MSS != 0) num_packets++;
+    fseek(fp, 0L, SEEK_END);
+    unsigned long long int sz = ftell(fp);
+    rewind(fp);
+    num_packets = sz / MSS;
+    if (sz % MSS != 0) num_packets++;
     int count = 1;
     int total_bytes_read = 0;
     while (!feof(fp)) {
