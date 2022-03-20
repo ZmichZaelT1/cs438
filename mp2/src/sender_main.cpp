@@ -24,7 +24,7 @@
 
 using namespace std;
 
-#define MSS 1000
+#define MSS 1024
 #define TIME_TH 160000 //us
 
 struct sockaddr_in si_other;
@@ -226,5 +226,3 @@ int main(int argc, char** argv) {
 
     return (EXIT_SUCCESS);
 }
-
-

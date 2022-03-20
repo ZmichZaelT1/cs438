@@ -18,7 +18,7 @@
 #include <iostream>
 using namespace std;
 
-#define MSS 1000
+#define MSS 1024
 
 typedef struct packet_ {
     long seqNum;
@@ -114,4 +114,3 @@ int main(int argc, char** argv) {
 
     reliablyReceive(udpPort, argv[2]);
 }
-
