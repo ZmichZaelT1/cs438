@@ -18,7 +18,7 @@
 #include <iostream>
 using namespace std;
 
-#define MSS 1024
+#define MSS 1000
 
 typedef struct packet_ {
     long seqNum;
