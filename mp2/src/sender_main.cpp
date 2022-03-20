@@ -33,8 +33,8 @@ int base = 1;
 int nextSeqNum = 1;
 int highestAckReceived = 0;
 int num_packets = 0;
-double time_th = 0.025;
-int N = 250;
+double time_th = 1;
+int N = 1;
 
 typedef struct packet_ {
     long seqNum;
@@ -118,6 +118,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
     while (1) {
         if (highestAckReceived == num_packets) break;
         int tmp = nextSeqNum;
+        cout<< "window size: " << N << endl;
         for (int i = 0; i < N; i++) {
             if (nextSeqNum > num_packets) {
                 break;
@@ -137,8 +138,15 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
         clock_t start = clock();
 
         int expectAck = nextSeqNum - 1;
+        int prevAck = -2;
+        int countDupAck = 0;
+        int halfed = 0;
         while ((double) (clock()-start) / (double) CLOCKS_PER_SEC < time_th) {
             int newAck = checkReceive();
+            // cout << "received ack: " << newAck<<endl;
+            if (newAck == 700) {
+                cout << "hhahaha"<< endl;
+            }
             if (newAck == -1) continue;
             if (newAck == expectAck) {
                 highestAckReceived = newAck;
@@ -149,13 +157,25 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
                 highestAckReceived = newAck;
                 nextSeqNum = highestAckReceived + 1;
             }
+            if (newAck == prevAck) {
+                countDupAck++;
+            }
+            if (countDupAck == 3 && halfed == 0) {
+                N = N / 2;
+                halfed = 1;
+            }
+            prevAck = newAck;
+            // cout << "received ack: " << newAck<< "     highestAck: "<<highestAckReceived<< endl;
         }
+        cout << "highestAck: " << highestAckReceived<< endl;
 
         if (nextSeqNum == tmp) { // no ack received
             nextSeqNum = tmp; // reset nextSeqNum
         }
+        if (halfed == 0) {
+            N *= 2;
+        }
         // N *= 4;
-
     }
 
 

@@ -15,6 +15,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <iostream>
+using namespace std;
 
 #define MSS 1300
 
@@ -83,8 +85,9 @@ void reliablyReceive(unsigned short int myUDPport, char* destinationFile) {
             writeToFile(fp, pck);
             expectedSeqNum++;
         }
-        int sendArk = expectedSeqNum - 1;
-        sendto(s, &sendArk, sizeof(sendArk), 0, (struct sockaddr*) &si_other, slen);
+        int sendAck = expectedSeqNum - 1;
+        sendto(s, &sendAck, sizeof(sendAck), 0, (struct sockaddr*) &si_other, slen);
+        cout << "sended ACK: "<< sendAck<<endl;
         fflush (fp);
 
     }
