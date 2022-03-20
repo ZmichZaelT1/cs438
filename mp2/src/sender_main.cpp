@@ -147,7 +147,7 @@ void reliablyTransfer(char* hostname, unsigned short int hostUDPport, char* file
             if (newAck == 700) {
                 cout << "hhahaha"<< endl;
             }
-            if (newAck == -1) continue;
+            // if (newAck == -1) continue;
             if (newAck == expectAck) {
                 highestAckReceived = newAck;
                 nextSeqNum = highestAckReceived + 1;
