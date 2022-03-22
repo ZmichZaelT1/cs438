@@ -53,31 +53,6 @@ void finishedSending() {
     }
 }
 
-void loadFileToPacket(FILE *fp, unsigned long long int bytesToTransfer) {
-    fseek(fp, 0L, SEEK_END);
-    unsigned long long int sz = ftell(fp);
-    rewind(fp);
-    num_packets = sz / MSS;
-    if (sz % MSS != 0) num_packets++;
-    int count = 1;
-    int total_bytes_read = 0;
-    while (!feof(fp)) {
-        packet *pck = (packet*) calloc(1, sizeof(packet));
-        // pck->data = (char*) calloc(MSS, sizeof(char));
-        size_t bytes_read = fread(pck->data, sizeof(char), MSS, fp);
-        if (bytes_read <= 0) {
-            // free(pck->data);
-            // free(pck);
-            break;
-        }
-        pck->seqNum = count;
-        pck->length = (int) bytes_read;
-        packets_map[count++] = pck;
-        total_bytes_read += bytes_read;
-        // count++;
-    }
-    cout << "total byte read: "<< total_bytes_read<<"\ntotal packets: "<<count<<endl; 
-}
 
 int checkReceive() {
     int ack = -1;
