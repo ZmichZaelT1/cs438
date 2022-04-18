@@ -157,7 +157,7 @@ map<int, int> dijkstra(int src, map<int, int> &parent) {
         int u = minDistance(dist, sptSet);
         sptSet[u] = true;
         for (int v : vs) {
-            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[u] != INT_MAX)  {
+            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[v] != INT_MAX)  {
                 dist[v] = dist[u] + g.getWeight(u, v);
                 parent[v] = u;
             }
@@ -168,15 +168,15 @@ map<int, int> dijkstra(int src, map<int, int> &parent) {
 
 int minDistance(map<int, int> dist, unordered_map<int, bool> sptSet) {
     // Initialize min value
-    int min = INT_MAX;
-    int min_index;
+    int min_d = INT_MAX;
+    int min_index = INT_MAX;
     vector<int> vs = g.getVertices();
     for (int v : vs) {
-        if (sptSet[v] == false && dist[v] <= min) {
-            if (dist[v] == min && min != INT_MAX) {
-                if (v > min_index) continue;
-            }
-            min = dist[v], min_index = v;
+        if (sptSet[v] == false && dist[v] < min_d) {
+            min_d = dist[v], min_index = v;
+        }
+        if (dist[v] == min_d) {
+            min_index = min(v, min_index);
         }
     }
     return min_index;
