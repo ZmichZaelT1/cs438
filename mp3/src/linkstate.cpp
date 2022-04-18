@@ -173,6 +173,9 @@ int minDistance(map<int, int> dist, unordered_map<int, bool> sptSet) {
     vector<int> vs = g.getVertices();
     for (int v : vs) {
         if (sptSet[v] == false && dist[v] <= min) {
+            if (dist[v] == min && min != INT_MAX) {
+                if (v > min_index) continue;
+            }
             min = dist[v], min_index = v;
         }
     }
