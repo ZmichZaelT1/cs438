@@ -157,10 +157,18 @@ map<int, int> dijkstra(int src, map<int, int> &parent) {
         int u = minDistance(dist, sptSet);
         sptSet[u] = true;
         for (int v : vs) {
-            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[v])  {
-                dist[v] = dist[u] + g.getWeight(u, v);
-                parent[v] = u;
+            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX) {
+                if (dist[u] + g.getWeight(u, v) < dist[v]) {
+                    dist[v] = dist[u] + g.getWeight(u, v);
+                    parent[v] = u;
+                } else if (dist[u] + g.getWeight(u, v) == dist[v]) {
+                    parent[v] = min(u, parent[v]);
+                }
             }
+            // if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[v])  {
+            //     dist[v] = dist[u] + g.getWeight(u, v);
+            //     parent[v] = u;
+            // }
         }
     }
     return dist;
