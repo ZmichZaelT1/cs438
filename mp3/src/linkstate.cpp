@@ -204,6 +204,11 @@ void sendMessage(char * messageFile, FILE* out) {
         sscanf(line, "%d %d %[^\n]", &src, &dest, message);
         map<int, int> parent;
         map<int, int> tmp = dijkstra(src, parent);
+
+        if (tmp[dest] == INT_MAX) {
+            fprintf(out, "from %d to %d cost infinite hops unreachable message %s\n", src, dest, message);
+            continue;
+        }
         
         vector<int> path;
         printPath(parent, dest, path);
@@ -216,7 +221,7 @@ void sendMessage(char * messageFile, FILE* out) {
         fprintf(out, "from %d to %d cost %d hops %smessage %s\n", src, dest, tmp[dest], path_c, message);
     }
 }
-// “from <x> to <y> cost <path_cost> hops <hop1> <hop2> <...> message <message>”
+// from <x> to <y> cost infinite hops unreachable message <message>
 
 void printPath(map<int, int> parent, int j, vector<int> &path) {
     if (parent[j] == -1) return;
@@ -235,6 +240,7 @@ void printAllTopo(FILE *fpOut) {
         
         for (int j = 0; j < vertices.size(); j++) {
             int c = vertices[j];
+            if (tmp[c] == INT_MAX) continue;
             printf("%d -> %d    %d  ", curr, c, tmp[c]);
             vector<int> path;
             printPath(parent, c, path);
