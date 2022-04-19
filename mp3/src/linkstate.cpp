@@ -157,7 +157,7 @@ map<int, int> dijkstra(int src, map<int, int> &parent) {
         int u = minDistance(dist, sptSet);
         sptSet[u] = true;
         for (int v : vs) {
-            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[v] != INT_MAX)  {
+            if (!sptSet[v] && g.getWeight(u, v) && dist[u] != INT_MAX && dist[u] + g.getWeight(u, v) < dist[v])  {
                 dist[v] = dist[u] + g.getWeight(u, v);
                 parent[v] = u;
             }
@@ -236,6 +236,7 @@ void printAllTopo(FILE *fpOut) {
             } else {
                 fprintf(fpOut, "%d %d %d\n", c, path[1], tmp[c]);
             }
+            fflush(fpOut);
         }
         fprintf(fpOut, "\n");
     }
