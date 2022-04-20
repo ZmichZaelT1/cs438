@@ -75,8 +75,8 @@ void Graph::addEdge(int a, int b, int weight)
 }
 
 void Graph::deleteEdge(int a, int b) {
-    adj.erase(a);
-    adj.erase(b);
+    adj[a].erase(b);
+    adj[b].erase(a);
 }
 
 void loadTopoToGraph(char*);
