@@ -278,10 +278,10 @@ void printAllTopo(FILE *fpOut) {
         for (int j = 0; j < vertices.size(); j++) {
             int c = vertices[j];
             if (tmp[c] == INT_MAX) continue;
-            printf("%d -> %d    %d  ", curr, c, tmp[c]);
+            // printf("%d -> %d    %d  ", curr, c, tmp[c]);
             vector<int> path;
             printPath(parent, c, path);
-            puts("\n");
+            // puts("\n");
             if (path.size() == 1) {
                 fprintf(fpOut, "%d %d %d\n", c, path[0], tmp[c]);
             } else {
@@ -289,7 +289,7 @@ void printAllTopo(FILE *fpOut) {
             }
             fflush(fpOut);
         }
-        fprintf(fpOut, "\n");
+        // fprintf(fpOut, "\n");
     }
 }
 
