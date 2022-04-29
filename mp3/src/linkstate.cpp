@@ -118,6 +118,7 @@ int main(int argc, char** argv) {
     int a, b, weight;
     size_t len = 0;
     while (getline(&line, &len, fpChanges) != -1) {
+        if (!strcmp(line, "\n")) continue;
         sscanf(line, "%d %d %d", &a, &b, &weight);
         // printf("%s %s %d", a, b, weight);
         applyChanges(a, b, weight);
@@ -201,6 +202,7 @@ void sendMessage(char * messageFile, FILE* out) {
     char *line;
     size_t len = 0;
     while (getline(&line, &len, mf) != -1) {
+        if (!strcmp(line, "\n")) continue;
         sscanf(line, "%d %d %[^\n]", &src, &dest, message);
         map<int, int> parent;
         map<int, int> tmp = dijkstra(src, parent);
@@ -270,6 +272,7 @@ void loadTopoToGraph(char *topofile) {
     int a, b, weight;
     size_t len = 0;
     while (getline(&line, &len, tp) != -1) {
+        if (!strcmp(line, "\n")) continue;
         sscanf(line, "%d %d %d", &a, &b, &weight);
         g.addEdge(a, b, weight);
     }
